@@ -8,13 +8,13 @@
 import React from 'react';
 import type {PropsWithChildren} from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
+  SafeAreaView, // 노치 등과 같이 사용할 수 없는 공간을 채우기 위함
+  ScrollView, // 스크롤을 사용하기 위한 view, 성능 문제(FlatList 활용)
+  StatusBar, // 상단 정보바 등, react-native-status-bar-height 라이브러리로 높이를 구함
   StyleSheet,
-  Text,
+  Text, // span과 비슷
   useColorScheme,
-  View,
+  View, // div와 비슷
 } from 'react-native';
 
 import {
@@ -29,6 +29,7 @@ type SectionProps = PropsWithChildren<{
   title: string;
 }>;
 
+// 하나의 파일에 두 개 이상의 컴포넌트 지양
 function Section({children, title}: SectionProps): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   return (
@@ -37,6 +38,8 @@ function Section({children, title}: SectionProps): JSX.Element {
         style={[
           styles.sectionTitle,
           {
+            // 기본 styleSheet는 조건문 사용 X
+            // 조건문을 쓰기 위함
             color: isDarkMode ? Colors.white : Colors.black,
           },
         ]}>
@@ -114,6 +117,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   // border: "1px solid radius" 이런 축약 안됨
+  // 웹과 css 차이 찾기 어려움. typescript 자동 완성을 통해 도움 받기
 });
 
 export default App;
