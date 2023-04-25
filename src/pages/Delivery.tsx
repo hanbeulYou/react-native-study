@@ -6,6 +6,7 @@ import Ing from './Ing';
 const Stack = createNativeStackNavigator();
 
 function Delivery() {
+  // Navigator 안에 screen 중첩
   return (
     <Stack.Navigator>
       <Stack.Screen name="Ing" component={Ing} options={{title: '내 오더'}} />
