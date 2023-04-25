@@ -11,6 +11,7 @@ type RootStackParamList = {
   Home: undefined;
   Details: undefined;
 };
+// 끔찍한 타입...
 type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 type DetailsScreenProps = NativeStackScreenProps<ParamListBase, 'Details'>;
 
@@ -20,10 +21,33 @@ function HomeScreen({navigation}: HomeScreenProps) {
   }, [navigation]);
 
   return (
-    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-      <TouchableHighlight onPress={onClick}>
-        <Text>Home Screen</Text>
-      </TouchableHighlight>
+    // flex는 서로가 차지하는 비율, col이 기준
+    // justifyContent도 col 기준
+    // alignItmes로 row 정렬
+    // onClick 대신 onPress 활용
+    <View style={{flexDirection: 'row'}}>
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'blue',
+        }}>
+        <TouchableHighlight
+          onPress={onClick}
+          style={{padding: 10, backgroundColor: 'black'}}>
+          <Text style={{color: 'white'}}>Home Screen</Text>
+        </TouchableHighlight>
+      </View>
+      <View
+        style={{
+          flex: 2,
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          backgroundColor: 'orange',
+        }}>
+        <Text>다른거</Text>
+      </View>
     </View>
   );
 }
