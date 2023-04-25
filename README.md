@@ -310,6 +310,28 @@ export default App;
 - Drawer과 Tab.Group 사용처 소개
 src/pages/Delivery.tsx
 ```typescript jsx
+import React from 'react';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import Complete from './Complete';
+import Ing from './Ing';
+
+const Stack = createNativeStackNavigator();
+
+function Delivery() {
+  // Navigator 안에 screen 중첩
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="Ing" component={Ing} options={{title: '내 오더'}} />
+      <Stack.Screen
+        name="Complete"
+        component={Complete}
+        options={{title: '완료하기'}}
+      />
+    </Stack.Navigator>
+  );
+}
+
+export default Delivery;
 
 ```
 - Navigator는 nesting 가능
