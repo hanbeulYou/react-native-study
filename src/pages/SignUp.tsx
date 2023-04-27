@@ -60,6 +60,9 @@ function SignUp({navigation}: SignUpScreenProps) {
 
   const canGoNext = email && name && password;
   return (
+    // KeyboardAvoidingView로 키보드가 가리지 않게
+    // <KeyboardAvoidingView behavior="position">
+    // 이건 강사님이 직접 만든 View : 바깥 클릭시 키보드 내리기 + 키보드 가리지 않게
     <DismissKeyboardView>
       <View style={styles.inputWrapper}>
         <Text style={styles.label}>이메일</Text>
