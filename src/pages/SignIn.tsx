@@ -19,6 +19,7 @@ function SignIn({navigation}: SignInScreenProps) {
   const emailRef = useRef<TextInput | null>(null);
   const passwordRef = useRef<TextInput | null>(null);
 
+  // useCallback 활용하기
   const onChangeEmail = useCallback(text => {
     setEmail(text.trim());
   }, []);
@@ -49,14 +50,22 @@ function SignIn({navigation}: SignInScreenProps) {
           onChangeText={onChangeEmail}
           placeholder="이메일을 입력해주세요"
           placeholderTextColor="#666"
+          // 자동완성
           importantForAutofill="yes"
           autoComplete="email"
+          // 이메일 형식 받기
           textContentType="emailAddress"
+          // 키보드 타입 변경
+          keyboardType="email-address"
           value={email}
+          // 엔터?시 다음 표시
           returnKeyType="next"
+          // ios에서 x 표시 뜨게
           clearButtonMode="while-editing"
           ref={emailRef}
+          // 엔터?시 무슨 일
           onSubmitEditing={() => passwordRef.current?.focus()}
+          // 키보드 내려가지 않게 방지
           blurOnSubmit={false}
         />
       </View>
@@ -71,6 +80,7 @@ function SignIn({navigation}: SignInScreenProps) {
           value={password}
           autoComplete="password"
           textContentType="password"
+          // 비밀번호 안보이게
           secureTextEntry
           returnKeyType="send"
           clearButtonMode="while-editing"
