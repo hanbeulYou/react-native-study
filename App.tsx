@@ -26,12 +26,13 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function App() {
-  const [isLoggedIn, setLoggedIn] = useState(true);
+  const [isLoggedIn, setLoggedIn] = useState(false);
   // Tab.Navigator를 활용해 Tab들 이동
   return (
     <NavigationContainer>
       {isLoggedIn ? (
         <Tab.Navigator>
+          {/* Tab.Group도 있음 */}
           <Tab.Screen
             name="Orders"
             component={Orders}
