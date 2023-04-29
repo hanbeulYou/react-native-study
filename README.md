@@ -385,7 +385,7 @@ declare module 'react-native-keyboard-aware-scrollview' {
     Constructor<any>;
   class KeyboardAwareScrollView extends KeyboardAwareScrollViewComponent {}
   export {KeyboardAwareScrollView};
-}
+} 
 
 ```
 src/components/DismissKeyBoardView.tsx
