@@ -9,6 +9,8 @@ import Delivery from './src/pages/Delivery';
 import SignIn from './src/pages/SignIn';
 import SignUp from './src/pages/SignUp';
 import {RootState} from './src/store/reducer';
+import useSocket from './src/hooks/useSocket';
+import {useEffect} from 'react';
 
 export type LoggedInParamList = {
   Orders: undefined;
@@ -27,6 +29,35 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppInner() {
   const isLoggedIn = useSelector((state: RootState) => !!state.user.email);
+  const [socket, disconnect] = useSocket();
+  // 'key', 'value' 형태로 data 받아옴
+
+  useEffect(() => {
+    const helloCallback = (data: any) => {
+      console.log(data);
+    };
+    if (socket && isLoggedIn) {
+      console.log(socket);
+      // 서버에 data 보내기
+      socket.emit('login', 'hello');
+      // 서버의 data 받기
+      socket.on('hello', helloCallback);
+    }
+    // useEffect의 return 값은 clean-up 함수
+    return () => {
+      if (socket) {
+        // data 받는거 그만
+        socket.off('hello', helloCallback);
+      }
+    };
+  }, [isLoggedIn, socket]);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      console.log('!isLoggedIn', !isLoggedIn);
+      disconnect();
+    }
+  }, [isLoggedIn, disconnect]);
 
   return (
     <NavigationContainer>
