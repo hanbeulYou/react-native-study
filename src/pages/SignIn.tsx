@@ -61,6 +61,7 @@ function SignIn({navigation}: SignInScreenProps) {
           accessToken: response.data.data.accessToken,
         }),
       );
+      // 안전하게 EncryptedStorage에 보관
       await EncryptedStorage.setItem(
         'refreshToken',
         response.data.data.refreshToken,
