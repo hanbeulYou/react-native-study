@@ -749,19 +749,114 @@ AppInner.tsx
 ## 주문 데이터 리덕스에 저장하기
 src/slices/order.ts
 ```typescript
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
+
+export interface Order {
+  orderId: string;
+  start: {
+    latitude: number;
+    longitude: number;
+  };
+  end: {
+    latitude: number;
+    longitude: number;
+  };
+  price: number;
+}
+interface InitialState {
+  orders: Order[];
+  deliveries: Order[];
+}
+
+const initialState: InitialState = {
+  orders: [],
+  deliveries: [],
+};
+
+const orderSlice = createSlice({
+  name: 'order',
+  initialState,
+  reducers: {
+    addOrder(state, action: PayloadAction<Order>) {
+      state.orders.push(action.payload);
+    },
+    acceptOrder(state, action: PayloadAction<string>) {
+      const index = state.orders.findIndex(v => v.orderId === action.payload);
+      if (index > -1) {
+        state.deliveries.push(state.orders[index]);
+        state.orders.splice(index, 1);
+      }
+    },
+    rejectOrder(state, action: PayloadAction<string>) {
+      const index = state.orders.findIndex(v => v.orderId === action.payload);
+      if (index > -1) {
+        state.orders.splice(index, 1);
+      }
+      const delivery = state.deliveries.findIndex(
+        v => v.orderId === action.payload,
+      );
+      if (delivery > -1) {
+        state.deliveries.splice(delivery, 1);
+      }
+    },
+  },
+  extraReducers: builder => {},
+});
+
+export default orderSlice;
 
 ```
 
 ## 수익금 확인하기
 src/pages/Settings.tsx
-```
+```typescript
+  const money = useSelector((state: RootState) => state.user.money);
+  const name = useSelector((state: RootState) => state.user.name);
 
+  useEffect(() => {
+    async function getMoney() {
+      const response = await axios.get<{data: number}>(
+        `${Config.API_URL}/showmethemoney`,
+        {
+          headers: {authorization: `Bearer ${accessToken}`},
+        },
+      );
+      dispatch(userSlice.actions.setMoney(response.data.data));
+    }
+    getMoney();
+  }, [accessToken, dispatch]);
 ```
 
 ## 주문 화면 만들기(수락/거절)
 src/pages/Orders.tsx
 ```typescript jsx
+import React, {useCallback} from 'react';
+import {FlatList, View} from 'react-native';
+import {Order} from '../slices/order';
+import {useSelector} from 'react-redux';
+import {RootState} from '../store/reducer';
+import EachOrder from '../components/EachOrder';
 
+function Orders() {
+  const orders = useSelector((state: RootState) => state.order.orders);
+  const renderItem = useCallback(({item}: {item: Order}) => {
+    return <EachOrder item={item} />;
+  }, []);
+
+  return (
+    <View>
+      <FlatList
+        data={orders}
+        // key의 역할(함수)
+        keyExtractor={item => item.orderId}
+        // 랜더할 내용
+        renderItem={renderItem}
+      />
+    </View>
+  );
+}
+
+export default Orders;
 ```
 - ScrollView + map 조합은 좋지 않음
 - FlatList를 쓰기
@@ -770,6 +865,134 @@ src/pages/Orders.tsx
 
 src/components/EachOrder.tsx
 ```typescript jsx
+import {Alert, Pressable, StyleSheet, Text, View} from 'react-native';
+import React, {useCallback, useState} from 'react';
+import orderSlice, {Order} from '../slices/order';
+import {useAppDispatch} from '../store';
+import getDistanceFromLatLonInKm from '../util';
+import axios, {AxiosError} from 'axios';
+import {useSelector} from 'react-redux';
+import {RootState} from '../store/reducer';
+import Config from 'react-native-config';
+import {NavigationProp, useNavigation} from '@react-navigation/native';
+import {LoggedInParamList} from '../../AppInner';
+
+interface Props {
+  item: Order;
+}
+function EachOrder({item}: Props) {
+  // props drilling X -> NavigationProp<>
+  const navigation = useNavigation<NavigationProp<LoggedInParamList>>();
+  const dispatch = useAppDispatch();
+  const accessToken = useSelector((state: RootState) => state.user.accessToken);
+  const [detail, showDetail] = useState(false);
+
+  const onAccept = useCallback(async () => {
+    if (!accessToken) {
+      return;
+    }
+    try {
+      await axios.post(
+        `${Config.API_URL}/accept`,
+        {orderId: item.orderId},
+        {headers: {authorization: `Bearer ${accessToken}`}},
+      );
+      dispatch(orderSlice.actions.acceptOrder(item.orderId));
+      navigation.navigate('Delivery');
+    } catch (error) {
+      const errorResponse = (error as AxiosError).response;
+      if (errorResponse?.status === 400) {
+        // 타인이 이미 수락한 경우
+        Alert.alert('알림', errorResponse.data.message);
+        dispatch(orderSlice.actions.rejectOrder(item.orderId));
+      }
+    }
+  }, [navigation, dispatch, item, accessToken]);
+
+  const onReject = useCallback(() => {
+    dispatch(orderSlice.actions.rejectOrder(item.orderId));
+  }, [dispatch, item]);
+  const {start, end} = item;
+
+  const toggleDetail = useCallback(() => {
+    showDetail(prevState => !prevState);
+  }, []);
+
+  return (
+    <View style={styles.orderContainer}>
+      <Pressable onPress={toggleDetail} style={styles.info}>
+        <Text style={styles.eachInfo}>
+          {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}원
+        </Text>
+        <Text style={styles.eachInfo}>
+          {getDistanceFromLatLonInKm(
+            start.latitude,
+            start.longitude,
+            end.latitude,
+            end.longitude,
+          ).toFixed(1)}
+          km
+        </Text>
+      </Pressable>
+      {detail && (
+        <View>
+          <View>
+            <Text>네이버맵이 들어갈 장소</Text>
+          </View>
+          <View style={styles.buttonWrapper}>
+            <Pressable onPress={onAccept} style={styles.acceptButton}>
+              <Text style={styles.buttonText}>수락</Text>
+            </Pressable>
+            <Pressable onPress={onReject} style={styles.rejectButton}>
+              <Text style={styles.buttonText}>거절</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  orderContainer: {
+    borderRadius: 5,
+    margin: 5,
+    padding: 10,
+    backgroundColor: 'lightgray',
+  },
+  info: {
+    flexDirection: 'row',
+  },
+  eachInfo: {
+    flex: 1,
+  },
+  buttonWrapper: {
+    flexDirection: 'row',
+  },
+  acceptButton: {
+    backgroundColor: 'blue',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomLeftRadius: 5,
+    borderTopLeftRadius: 5,
+    flex: 1,
+  },
+  rejectButton: {
+    backgroundColor: 'red',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomRightRadius: 5,
+    borderTopRightRadius: 5,
+    flex: 1,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+});
+
+export default EachOrder;
 
 ```
 ## accessToken 만료시 자동으로 refresh되게
