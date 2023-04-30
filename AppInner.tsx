@@ -41,6 +41,45 @@ function AppInner() {
   // 'key', 'value' 형태로 data 받아옴
 
   useEffect(() => {
+    // interceptor를 활용해 같은 로직 관리
+    axios.interceptors.response.use(
+      response => {
+        console.log(response);
+        return response;
+      },
+      async error => {
+        const {
+          // 원래 요청은 config
+          config,
+          response: {status},
+        } = error;
+        if (status === 419) {
+          if (error.response.data.code === 'expired') {
+            const originalRequest = config;
+            const refreshToken = await EncryptedStorage.getItem('refreshToken');
+            const {data} = await axios.post(
+              `${Config.API_URL}/refreshToken`,
+              {},
+              {
+                headers: {
+                  authorization: `Bearer ${refreshToken}`,
+                },
+              },
+            );
+            // 새로운 토큰 저장
+            dispatch(userSlice.actions.setAccessToken(data.data.accessToken));
+            // 헤더에 토큰 갱신
+            originalRequest.headers.authorization = `Bearer ${data.data.accessToken}`;
+            // 기존 axios 재요청
+            return axios(originalRequest);
+          }
+        }
+        return Promise.reject(error);
+      },
+    );
+  }, [dispatch]);
+
+  useEffect(() => {
     const callback = (data: any) => {
       console.log(data);
       dispatch(orderSlice.actions.addOrder(data));
