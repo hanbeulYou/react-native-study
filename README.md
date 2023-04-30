@@ -506,7 +506,35 @@ const 값 = await EncryptedStorage.getItem('키');
 - 그 외에 유지만 되면 데이터들은 async-storage에 저장(npm install @react-native-async-storage/async-storage)
 
 src/pages/SignUp.tsx, src/pages/SignIn.tsx
-```
+```typescript jsx
+try {
+  setLoading(true);
+  const response = await axios.post(`${Config.API_URL}/login`, {
+    email,
+    password,
+  });
+  console.log(response.data);
+  Alert.alert('알림', '로그인 되었습니다.');
+  dispatch(
+    userSlice.actions.setUser({
+      name: response.data.data.name,
+      email: response.data.data.email,
+      accessToken: response.data.data.accessToken,
+    }),
+  );
+  // 안전하게 EncryptedStorage에 보관
+  await EncryptedStorage.setItem(
+    'refreshToken',
+    response.data.data.refreshToken,
+  );
+} catch (error) {
+  const errorResponse = (error as AxiosError).response;
+  if (errorResponse) {
+    Alert.alert('알림', errorResponse.data.message);
+  }
+} finally {
+  setLoading(false);
+}
 ```
 android에서 http 요청이 안 보내지면
 - android/app/src/main/AndroidManifest.xml 에서 <application> 태그에 android:usesCleartextTraffic="true" 추가
