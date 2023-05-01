@@ -97,9 +97,13 @@ function Complete() {
       Alert.alert('알림', '유효하지 않은 주문입니다.');
       return;
     }
+    console.log('사진 전송하기 클릭함');
+
     const formData = new FormData();
     formData.append('image', image);
     formData.append('orderId', orderId);
+
+    console.log(Config.API_URL);
     try {
       await axios.post(`${Config.API_URL}/complete`, formData, {
         headers: {
@@ -111,6 +115,8 @@ function Complete() {
       navigation.navigate('Settings');
       dispatch(orderSlice.actions.rejectOrder(orderId));
     } catch (error) {
+      console.log('error', error);
+      console.log(formData);
       const errorResponse = (error as AxiosError).response;
       if (errorResponse) {
         Alert.alert('알림', errorResponse.data.message);
@@ -141,6 +147,7 @@ function Complete() {
               : StyleSheet.compose(styles.button, styles.buttonDisabled)
           }
           onPress={onComplete}>
+          {/* disabled와 loading 로직 구현하기 */}
           <Text style={styles.buttonText}>완료</Text>
         </Pressable>
       </View>
