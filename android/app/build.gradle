@@ -90,18 +90,21 @@ def reactNativeArchitectures() {
 }
 
 android {
+    // GPT
+    buildToolsVersion "30.0.3"
+
     ndkVersion rootProject.ext.ndkVersion
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion 31
 
-    namespace "com.fooddeliveryapp"
+    namespace "com.hayou.fooddeliveryapp"
     defaultConfig {
-        applicationId "com.fooddeliveryapp"
+        applicationId "com.hayou.fooddeliveryapp"
         minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0"
-        resValue "string", "build_config_package", "com.fooddeliveryapp"
+        resValue "string", "build_config_package", "com.hayou.fooddeliveryapp"
     }
 
     splits {
